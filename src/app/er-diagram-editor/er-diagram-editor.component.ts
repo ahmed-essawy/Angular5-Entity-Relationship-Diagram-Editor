@@ -1,11 +1,10 @@
-import { ContextMenuTool } from 'gojs/release/go';
 import { Component, OnInit, ViewChild, ElementRef, Input, Output, EventEmitter } from '@angular/core';
 import * as go from 'gojs';
 
 @Component({
-  selector: 'app-er-diagram-editor',
-  templateUrl: './er-diagram-editor.component.html',
-  styleUrls: ['./er-diagram-editor.component.css']
+  selector: 'app-er-diagram',
+  template: '<div #diagramDiv class="diagramDiv"></div>',
+  styles: ['.diagramDiv,.paletteDiv{border:1px solid #000;display:inline-block;vertical-align:top;height:400px}.diagramsPanel{width:100%;white-space:nowrap}.diagramDiv{width:80%}.paletteDiv{width:19%}']
 })
 export class ERDiagramEditorComponent implements OnInit {
   private diagram: go.Diagram = new go.Diagram();
@@ -15,10 +14,10 @@ export class ERDiagramEditorComponent implements OnInit {
 
   @Input()
   get tables(): Object[] { return this.diagram.model.nodeDataArray; }
-  set tables(val: Object[]) { this.diagram.model.nodeDataArray = val; }
+  set tables(val: Object[]) { this.diagram.model.nodeDataArray = val ? val : []; }
 
   @Input()
-  set relations(val: Object[]) { (this.diagram.model as go.GraphLinksModel).linkDataArray = val; }
+  set relations(val: Object[]) { (this.diagram.model as go.GraphLinksModel).linkDataArray = val ? val : []; }
 
   @Input() dataTypes: String[];
 
@@ -28,7 +27,6 @@ export class ERDiagramEditorComponent implements OnInit {
   constructor() {
     this.dataTypes = [];
     const $ = go.GraphObject.make;
-    (go as any).licenseKey = "YourKeyHere";
     this.diagram = new go.Diagram();
     this.diagram.initialContentAlignment = go.Spot.Center;
     this.diagram.undoManager.isEnabled = true;
@@ -62,14 +60,6 @@ export class ERDiagramEditorComponent implements OnInit {
             item.diagram.skipsUndoManager = oldskips;
           }
         },
-        $(go.Shape,
-          {
-            width: 12, height: 12, column: 0, strokeWidth: 2, margin: 4,
-            // but disallow drawing links from or to this shape:
-            fromLinkable: false, toLinkable: false
-          },
-          new go.Binding("figure", "figure"),
-          new go.Binding("fill", "color")),
         $(go.TextBlock,
           {
             margin: new go.Margin(0, 2), column: 1, font: "bold 13px sans-serif",
@@ -77,43 +67,19 @@ export class ERDiagramEditorComponent implements OnInit {
             // and disallow drawing links from or to this text:
             fromLinkable: false, toLinkable: false
           },
-          new go.Binding("text", "name")),
+          new go.Binding("text", "name").makeTwoWay()),
         $(go.TextBlock,
           {
             margin: new go.Margin(0, 2), column: 2, font: "13px sans-serif",
             editable: true, isMultiline: false
           },
-          new go.Binding("text", "dataType"))
+          new go.Binding("text", "dataType").makeTwoWay())
       );
     // This template represents a whole "record".
     this.diagram.nodeTemplate =
       $(go.Node, "Auto", {
-        selectionAdorned: true,
-        resizable: true,
-        layoutConditions: go.Part.LayoutStandard & ~go.Part.LayoutNodeSized,
-        fromSpot: go.Spot.AllSides,
-        toSpot: go.Spot.AllSides,
         isShadowed: true,
-        shadowColor: "#C5C1AA",
-        contextMenu:
-        $(go.Adornment, "Vertical",
-          $("ContextMenuButton", $(go.TextBlock, "Delete Node"),
-            {
-              click: function (e, obj) {
-                e.diagram.startTransaction('delete node');
-                e.diagram.remove(e.diagram.selection.first());
-                e.diagram.commitTransaction('delete node');
-              }
-            }),
-          $("ContextMenuButton", $(go.TextBlock, "New Column"),
-            {
-              click: function (e, obj) {
-                e.diagram.startTransaction('new column');
-                e.diagram.model.addArrayItem(e.diagram.selection.first().data.fields, { name: "item", dataType: "String", color: "#FFB900", figure: "Ellipse" });
-                e.diagram.commitTransaction('new column');
-              }
-            })
-        )
+        shadowColor: "#C5C1AA"
       },
         new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
         // this rectangular shape surrounds the content of the node
@@ -135,7 +101,7 @@ export class ERDiagramEditorComponent implements OnInit {
                 font: "bold 12pt sans-serif",
                 editable: true, isMultiline: false
               },
-              new go.Binding("text", "key"))),
+              new go.Binding("text", "key").makeTwoWay())),
           // this Panel holds a Panel for each item object in the itemArray;
           // each item Panel is defined by the itemTemplate to be a TableRow in this Table
           $(go.Panel, "Table",
@@ -153,15 +119,13 @@ export class ERDiagramEditorComponent implements OnInit {
       );  // end Node
     this.diagram.linkTemplate =
       $(go.Link,
-        { relinkableFrom: true, relinkableTo: true, toShortLength: 4 },  // let user reconnect links
+        { toShortLength: 4 },  // let user reconnect links
         $(go.Shape, { strokeWidth: 1.5 }),
         $(go.Shape, { toArrow: "Standard", stroke: null })
       );
     this.diagram.model =
       $(go.GraphLinksModel,
         {
-          linkFromPortIdProperty: "fromPort",
-          linkToPortIdProperty: "toPort",
           nodeDataArray: this.tables || [],
           linkDataArray: this.relations || []
         });
@@ -188,7 +152,7 @@ export class ERDiagramEditorComponent implements OnInit {
           {
             click: function (e, obj) {
               e.diagram.startTransaction('new node');
-              e.diagram.model.addNodeData({ key: "entity", fields: [{ name: "item", dataType: "String", color: "#FFB900", figure: "Ellipse" }], loc: "0 0" });
+              e.diagram.model.addNodeData({ key: "entity", fields: [{ name: "item", dataType: "String" }], loc: "0 0" });
               e.diagram.commitTransaction('new node');
             }
           })

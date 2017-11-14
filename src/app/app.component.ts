@@ -10,26 +10,26 @@ export class AppComponent {
     {
       key: "Products",
       fields: [
-        { name: "ProductID", dataType: "String", color: "#F7B84B", figure: "Ellipse" },
-        { name: "ProductName", dataType: "String", color: "#F25022", figure: "Ellipse" },
-        { name: "SupplierID", dataType: "String", color: "#00BCF2" }
+        { name: "ProductID", dataType: "String" },
+        { name: "ProductName", dataType: "String" },
+        { name: "SupplierID", dataType: "String" }
       ],
       loc: "100 100"
     },
     {
       key: "Suppliers",
       fields: [
-        { name: "SupplierID", dataType: "String", color: "#FFB900", figure: "Diamond" },
-        { name: "CompanyName", dataType: "String", color: "#F25022", figure: "Rectangle" },
-        { name: "ContactName", dataType: "String", color: "#7FBA00", figure: "Diamond" },
-        { name: "Address", dataType: "String", color: "#00BCF2", figure: "Rectangle" }
+        { name: "SupplierID", dataType: "String", },
+        { name: "CompanyName", dataType: "String" },
+        { name: "ContactName", dataType: "String" },
+        { name: "Address", dataType: "String" }
       ],
       loc: "500 100"
     }
   ];
 
   relations = [
-    { from: "Products", fromPort: "SupplierID", to: "Suppliers", toPort: "SupplierID" }
+    { from: "Products", to: "Suppliers" }
   ];
 
   nodeSelected(node) {
